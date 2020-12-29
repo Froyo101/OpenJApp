@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #383838;
 }
 
 code {
@@ -12,6 +13,23 @@ code {
     monospace;
 }
 
+.container {
+  background-color: #383838;
+  color: antiquewhite;
+}
+
 .content {
-  text-align: center;
+  background-color: #383838;
+  color: antiquewhite;
+}
+
+.card {
+  background-color: #454545;
+  color: antiquewhite;
+  border-radius: 15px;
+  padding: 20px 0px;
+}
+
+.advButton {
+  margin: 7px;
 }
