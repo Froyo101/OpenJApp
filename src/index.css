@@ -30,6 +30,10 @@ code {
   padding: 20px 0px;
 }
 
+.cardReadings {
+  margin-left: 20px;
+}
+
 .advButton {
   margin: 7px;
 }

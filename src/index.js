@@ -44,14 +44,39 @@ import './index.css';
 //Should probably make or get a proj management/goal/flowcharting app like trello to handle all of this if you do get serious
 // Bootstrap modals to pop up with advanced settings window?
 
+
+//Really need to get thinking about readings! Do you want to pass through lists of readings, or just have people go to Jisho?
+//Also, this class, while good for testing, may need to be nuked for final version as js or json is used instead
+class Kanji {
+  constructor(character, translation, on, kun, level) {
+    this.character = character;
+    this.translation = translation;
+    this.on = on;
+    this.kun = kun;
+    this.level = level;
+    //Could exclude last bit and change attribute name to 'jishoSearch' or just 'jisho'
+    this.jishoEntry = 'https://jisho.org/search/' + character + '%23kanji';
+  }
+}
+
+var testKanji = new Kanji('一', 'One', 'イチ', 'ひと', 5);
+
+//Have a public method called serveContent for both or serveKanji and serveVocab for each individual option?
+
+function serveKanji() {
+  return testKanji;
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      element: '初めて',
-      translation: 'Start',
+      mode: 'Kanji',
+      element: serveKanji(),
+      //translation: 'Start',
       isFront: true
     };
+    //this.element = serveContent();
   }
 
   handleCardClick() {
@@ -76,19 +101,21 @@ class App extends React.Component {
   }
 
   render() {
-    let display = this.state.element;
+    /*let display = this.state.element;
     if (!this.state.isFront) {
       display = this.state.translation;
-    }
+    }*/
 
+    //May have to pass down mode if you want to let <Card> handle alternating the rendering for Kanji/Vocab/etc
     return (
       <div className="container">
         <div className="header text-center">
           <h2>OpenJApp Flashcards</h2>
         </div>
         <div className="content">
-          <Card
-            toDisplay={display}
+          <KanjiCard
+            currentElement={this.state.element}
+            isFront={this.state.isFront}
             cardClick={() => this.handleCardClick()} 
           />
         </div>
@@ -107,7 +134,7 @@ class App extends React.Component {
 }
 
 //Do you need to have this be a stateful, class based component if APP is handling all real logic?
-class Card extends React.Component {
+class KanjiCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -115,24 +142,51 @@ class Card extends React.Component {
   }
 
   render () {
-    return (
-      <div className="card" onClick={this.props.cardClick}>
-        <h3 className="text-center">{this.props.toDisplay}</h3>
-      </div>
-    );
+    if (this.props.isFront) {
+      return (
+        <div className="card" onClick={this.props.cardClick}>
+          <KanjiFront 
+            element={this.props.currentElement}
+          />
+        </div>
+      );
+    }
+    else {
+      return (
+        <div className="card" onClick={this.props.cardClick}>
+          <KanjiBack 
+            element={this.props.currentElement}
+          />
+        </div>
+      );
+    }
   }
+}
+
+function KanjiFront(props) {
+  return (
+    <div>
+      <h3 className="text-center">{props.element.character}</h3>
+    </div>
+  );
+}
+
+function KanjiBack(props) {
+  return (
+    <div>
+      <h3 className="text-center">{props.element.translation}</h3>
+      <hr />
+      <h4 className="cardReadings">On Reading: {props.element.on}</h4>
+      <h4 className="cardReadings">Kun Reading: {props.element.kun}</h4>
+      <hr />
+      <p className="text-center"><a href={props.element.jishoEntry} target="_blank">Jisho</a></p>
+    </div>
+  );
 }
 
 function AdvancementControls(props) {
   return (
     <div className="row" align="center">
-      {/*<div className="col" align="center">
-        <Button>Easy</Button>
-      </div>
-      <div className="col" align="center">
-        <Button>Hard</Button>
-      </div>*/}
-
       <div className="col">
         <Button className="advButton" onClick={props.easyClick}>Easy</Button>
         <Button className="advButton" onClick={props.hardClick}>Hard</Button>
