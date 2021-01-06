@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from 'react-bootstrap/Button';
 import './index.css';
+import {JouyouKanji} from './Kanji.js';
 //import App from './App';
 //import reportWebVitals from './reportWebVitals';
 
@@ -60,11 +61,20 @@ class Kanji {
 }
 
 var testKanji = new Kanji('一', 'One', 'イチ', 'ひと', 5);
+const testKanjiLimit = 5;
 
 //Have a public method called serveContent for both or serveKanji and serveVocab for each individual option?
 
-function serveKanji() {
-  return testKanji;
+function serveKanji(poolFloor, poolCeiling) {
+  console.log('Floor and ceiling: ' + poolFloor + ' ' + poolCeiling);
+  
+  let min = Math.ceil(poolFloor - 1);
+  let max = Math.floor(poolCeiling - 1);
+  console.log('Min and max: ' + min + ' ' + max);
+  
+  let pick = Math.floor(Math.random() * (max - min + 1)) + min;
+  console.log(pick); 
+  return JouyouKanji[pick];
 }
 
 class App extends React.Component {
@@ -72,11 +82,19 @@ class App extends React.Component {
     super(props);
     this.state = {
       mode: 'Kanji',
-      element: serveKanji(),
+      element: serveKanji(1, 3),
       //translation: 'Start',
-      isFront: true
+      isFront: true,
+      poolFloor: 1,
+      poolCeiling: 3,
     };
     //this.element = serveContent();
+  }
+
+  handleSliderChange(e) {
+    this.setState({
+      poolCeiling: e.target.value
+    });
   }
 
   handleCardClick() {
@@ -87,12 +105,18 @@ class App extends React.Component {
 
   handleEasyClick() {
     //TODO
-    return;
+    this.setState({
+      isFront: true,
+      element: serveKanji(this.state.poolFloor, this.state.poolCeiling)
+    });
   }
 
   handleHardClick() {
     //TODO
-    return;
+    this.setState({
+      isFront: true,
+      element: serveKanji(this.state.poolFloor, this.state.poolCeiling)
+    });
   }
 
   handleSettingsClick() {
@@ -111,6 +135,10 @@ class App extends React.Component {
       <div className="container">
         <div className="header text-center">
           <h2>OpenJApp Flashcards</h2>
+        </div>
+        <div >
+          <p>Kanji in rotation: {this.state.poolCeiling}</p>
+          <input id="slider" type="range" min="1" max={testKanjiLimit} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
         </div>
         <div className="content">
           <KanjiCard
@@ -132,6 +160,14 @@ class App extends React.Component {
     );
   }
 }
+
+//Should be unnecessary if events are passed properly
+/*class Slider extends React.Component {
+  constructor(props) {
+    super(props);
+    this.slideRef = React.createRef();
+  }
+}*/
 
 //Do you need to have this be a stateful, class based component if APP is handling all real logic?
 class KanjiCard extends React.Component {
@@ -174,12 +210,12 @@ function KanjiFront(props) {
 function KanjiBack(props) {
   return (
     <div>
-      <h3 className="text-center">{props.element.translation}</h3>
+      <h3 className="text-center">{props.element.keyWords}</h3>
       <hr />
       <h4 className="cardReadings">On Reading: {props.element.on}</h4>
       <h4 className="cardReadings">Kun Reading: {props.element.kun}</h4>
       <hr />
-      <p className="text-center"><a href={props.element.jishoEntry} target="_blank">Jisho</a></p>
+      <p className="text-center"><a href={'https://jisho.org/search/' + props.element.character + '%23kanji'} target="_blank">Jisho</a></p>
     </div>
   );
 }

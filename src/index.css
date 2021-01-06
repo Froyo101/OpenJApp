@@ -18,6 +18,12 @@ code {
   color: antiquewhite;
 }
 
+#slider {
+  display: block;
+  margin: auto;
+  width: 80%;
+}
+
 .content {
   background-color: #383838;
   color: antiquewhite;
