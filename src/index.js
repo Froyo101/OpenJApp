@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from 'react-bootstrap/Button';
 import './index.css';
-import {JouyouKanji} from './Kanji.js';
+import {Kanji} from './Kanji.js';
 //import App from './App';
 //import reportWebVitals from './reportWebVitals';
 
@@ -48,7 +48,7 @@ import {JouyouKanji} from './Kanji.js';
 
 //Really need to get thinking about readings! Do you want to pass through lists of readings, or just have people go to Jisho?
 //Also, this class, while good for testing, may need to be nuked for final version as js or json is used instead
-class Kanji {
+/*class Kanji {
   constructor(character, translation, on, kun, level) {
     this.character = character;
     this.translation = translation;
@@ -58,10 +58,25 @@ class Kanji {
     //Could exclude last bit and change attribute name to 'jishoSearch' or just 'jisho'
     this.jishoEntry = 'https://jisho.org/search/' + character + '%23kanji';
   }
+}*/
+
+var curKanji;
+
+var KanjiStats = [];
+
+for (var i = 0; i < 2300; i++) {
+  KanjiStats[i] = {
+    encountered: false,
+    flagged: false,
+    easy: 0,
+    hard: 0
+  };
 }
 
-var testKanji = new Kanji('一', 'One', 'イチ', 'ひと', 5);
-const testKanjiLimit = 5;
+//JSON.stringify(KanjiStats);
+
+//var testKanji = new Kanji('一', 'One', 'イチ', 'ひと', 5);
+const testKanjiLimit = 2300;
 
 //Have a public method called serveContent for both or serveKanji and serveVocab for each individual option?
 
@@ -72,9 +87,28 @@ function serveKanji(poolFloor, poolCeiling) {
   let max = Math.floor(poolCeiling - 1);
   console.log('Min and max: ' + min + ' ' + max);
   
-  let pick = Math.floor(Math.random() * (max - min + 1)) + min;
-  console.log(pick); 
-  return JouyouKanji[pick];
+  let testing = true;
+  while (testing) {
+    curKanji = Math.floor(Math.random() * (max - min + 1)) + min;
+    console.log("curKanji " + curKanji);
+    console.log("ID " + Kanji[curKanji].ID);
+
+    if (!KanjiStats[curKanji].encountered) {
+      return Kanji[curKanji];
+    }
+    
+    //TODO: With current logic, if easy is selected enough times the card will never appear again.
+    //Can either change which side is asymptotic or cap bar at say .95
+    let selectionBar = 0.5 * Math.pow(1.2, KanjiStats[curKanji].easy - KanjiStats[curKanji].hard);
+    console.log("Bias: " + selectionBar);
+
+    if (Math.random() > selectionBar) {
+      return Kanji[curKanji];
+    }
+  }
+  
+  //console.log(curKanji); 
+  //return Kanji[curKanji];
 }
 
 class App extends React.Component {
@@ -82,11 +116,11 @@ class App extends React.Component {
     super(props);
     this.state = {
       mode: 'Kanji',
-      element: serveKanji(1, 3),
+      element: serveKanji(1, 10),
       //translation: 'Start',
       isFront: true,
       poolFloor: 1,
-      poolCeiling: 3,
+      poolCeiling: 25,
     };
     //this.element = serveContent();
   }
@@ -105,6 +139,14 @@ class App extends React.Component {
 
   handleEasyClick() {
     //TODO
+
+    if (!KanjiStats[curKanji].encountered) {
+      KanjiStats[curKanji].encountered = true;
+    }
+
+    KanjiStats[curKanji].easy++;
+    console.log("Easy encounters: " + KanjiStats[curKanji].easy);
+
     this.setState({
       isFront: true,
       element: serveKanji(this.state.poolFloor, this.state.poolCeiling)
@@ -113,6 +155,14 @@ class App extends React.Component {
 
   handleHardClick() {
     //TODO
+
+    if (!KanjiStats[curKanji].encountered) {
+      KanjiStats[curKanji].encountered = true;
+    }
+
+    KanjiStats[curKanji].hard++;
+    console.log("Hard encounters: " + KanjiStats[curKanji].hard);
+
     this.setState({
       isFront: true,
       element: serveKanji(this.state.poolFloor, this.state.poolCeiling)
