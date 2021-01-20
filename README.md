@@ -1,5 +1,9 @@
 # OpenJApp Scaling Flashcards Utility
 
+![Flashcard Front](https://github.com/Froyo101/scaling-flashcards/blob/main/OpenJAppAlphaCardFront.png?raw=true)
+
+![Flashcard Back](https://github.com/Froyo101/scaling-flashcards/blob/main/OpenJAppAlphaCardBack.png?raw=true)
+
 This project represents an effort to create a scaling (algorithmically driven according to user input and stats) flashcard utility similar to but distinct from Anki for learning and testing oneself on Japanese Kanji characters, as well as eventually vocabulary and grammar.
 
 In its current state, 2300 Kanji are included, reflecting those presented in Andrew Scott Conning's Kodansha Kanji Learner's Course, and character cards contain both the KKLC's bolded keywords for remembering them by as well as both On and Kun readings where applicable. The app is built in ReactJS with JSX, and to use it currently you'll need to clone the repo, install the appropriate package dependencies via NPM, and then either test or build it via NPM (commands as established by NPM and Create React App are detailed below). Plans are currently in place to host it at my personal domain, https://jakefoiles.xyz, but I intend to complete all basic functionality (primarily user stats storage at this point) before publishing a build there. Bug fixes and other contributions are welcome, and all code (excluding libraries used/referenced as applicable) is licensed under the GPL v3, making it a copyleft piece of Free and Open Source Software.
