@@ -2,68 +2,36 @@ import 'bootstrap/dist/css/bootstrap.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from 'react-bootstrap/Button';
-import './index.css';
+import './main.css';
+import Cards from './Cards.js';
+//import Quiz from './Quiz.js';
 import {Kanji} from './Kanji.js';
-//import App from './App';
+//import {Core} from './Vocab.js';
 //import reportWebVitals from './reportWebVitals';
 
-// card should be its own stateful component
-//rest/overarching "site" part should be a stateful component as well
-//also, sort out the "master" vs "main" shit as well
+//GENERAL PRINCIPLE TO REMEMBER: Most controlling logic should be raised to the highest level possible to ensure easy implementation of future app controls
 
-//whenever an element comes up and is completed (not skipped), tag it as seen and don't show it until a flush function is called
-//(if user has a no repeats until set complete button activated)
+//Primary Goals (Rough Roadmap):
+//1.0:
+  //Cap serving percentages at ~5% min and ~95-100% max to avoid cards permanently dropping from available pool
+//Store stats on client browser
+//1.x:
+  //Add a Core2k/6k (vocab) bank and mode
+//2.0:
+  //Add a multiple choice quiz mode
+//2.x:
+  //Pop up settings menu that allows user to personalize experience
 
-//store or generate links to jisho for every element?
+//Misc/Possible Future Features (all x.x unless roadmap revised to include):
+  //Add a starring/bookmarking feature and viewing list
+  //Allow resetting stats locally?
+  //No repeats until set (pool) complete mode?
+  //Animate card div so it does 180 degree flips as new info is loaded? (maybe vert when seeing def and horiz when changing cards?)
+  //Add time travel? (store ~10 last cards and allow cycling through them at user's convenience, but with flag that prevents extra time from
+    //being added)
 
-//days can just be 2^n: 1 day at 0th recall (first time seeing it), 2 days at 1st recall, 4 days at 2nd, etc.
-//users should be able to roll back timer by 1 factor or reset it altogether
-//"Easy" option increments timeframe further?
-//cap timeframe at 128?
-
-//most controlling logic should be raised to the highest level possible to ensure easy implementation of future app controls
-
-//Animate card div so it does 180 degree flips as new info is loaded? (maybe vert when seeing def and horiz when changing cards?)
-
-//Add time travel? (store ~10 last cards and allow cycling through them at user's convenience, but with flag that prevents extra time from
-//being added)
-
-//FIRST REAL COMMIT NOTES FOR NEXT DEV SESSION
-//Evaluate DB options - JSON and localStorage, or MySQL on a vps?
-//Start thinking about the serving algorithm
-//Start thinking about placement of advanced menu
-//Integrate Tab component from Bootstrap either above or below OpenJApp header?
-//Maybe have Gear icon in upper left corner of flashcard?
-//Or perhaps immediately below and in between Adv Buttons
-//Add a footer with attribution and licensing info
-//List out all Kanji/Vocab object properties that are necessary (and use classes to store everything for each?)
-//Add a Tag It! feature/button that adds the current kanji/vocab object and associated stats to a list accessible in a different tab
-//Advanced setting: have a radio group for which order to pool Kanji in slidebar (by grade, by N, by RTK, etc)
-//GPL v3 noncommercial to allow only you to display ads on mobile?
-//Are ads immoral, and say promotion of patreon/yt/blog the more appropriate option?
-//Have simple grammar flash cards to instill core concepts?
-//Should probably make or get a proj management/goal/flowcharting app like trello to handle all of this if you do get serious
-// Bootstrap modals to pop up with advanced settings window?
-
-
-//Really need to get thinking about readings! Do you want to pass through lists of readings, or just have people go to Jisho?
-//Also, this class, while good for testing, may need to be nuked for final version as js or json is used instead
-/*class Kanji {
-  constructor(character, translation, on, kun, level) {
-    this.character = character;
-    this.translation = translation;
-    this.on = on;
-    this.kun = kun;
-    this.level = level;
-    //Could exclude last bit and change attribute name to 'jishoSearch' or just 'jisho'
-    this.jishoEntry = 'https://jisho.org/search/' + character + '%23kanji';
-  }
-}*/
-
-var curKanji;
-
+//Establishes and initializes array of user stats for Kanji objects
 var KanjiStats = [];
-
 for (var i = 0; i < 2300; i++) {
   KanjiStats[i] = {
     encountered: false,
@@ -73,19 +41,25 @@ for (var i = 0; i < 2300; i++) {
   };
 }
 
+//TODO; Will play a part in storing user stats
 //JSON.stringify(KanjiStats);
 
-//var testKanji = new Kanji('一', 'One', 'イチ', 'ひと', 5);
-const testKanjiLimit = 2300;
+//Hold current linguistic elements
+var curKanji;
+//var curVocab;
 
+//Constants detailing array lengths at startup
+const kanjiSetLength = 2300;
+//const vocabSetLength = Core.length;
+
+//Algorithm that handles weighted/scaling serving of linguistic elements in Cards mode
 //Have a public method called serveContent for both or serveKanji and serveVocab for each individual option?
-
 function serveKanji(poolFloor, poolCeiling) {
-  console.log('Floor and ceiling: ' + poolFloor + ' ' + poolCeiling);
+  console.log("Floor and ceiling: " + poolFloor + ' ' + poolCeiling);
   
   let min = Math.ceil(poolFloor - 1);
   let max = Math.floor(poolCeiling - 1);
-  console.log('Min and max: ' + min + ' ' + max);
+  console.log("Min and max: " + min + ' ' + max);
   
   let testing = true;
   while (testing) {
@@ -107,39 +81,42 @@ function serveKanji(poolFloor, poolCeiling) {
     }
   }
   
-  //console.log(curKanji); 
-  //return Kanji[curKanji];
+  //Log code for testing
+  //console.log(curKanji);
 }
 
+//Core App, the highest level/most abstracted stateful component that manages all others
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      mode: 'Kanji',
+      mode: "Cards",
+      set: "Kanji",
       element: serveKanji(1, 10),
       //translation: 'Start',
       isFront: true,
+      poolSize: kanjiSetLength,
       poolFloor: 1,
       poolCeiling: 25,
     };
-    //this.element = serveContent();
   }
 
+  //Adjusts poolCeiling state according to slider value
   handleSliderChange(e) {
     this.setState({
       poolCeiling: e.target.value
     });
   }
 
+  //Flips Cards component for user
   handleCardClick() {
     this.setState({
       isFront: !this.state.isFront
     });
   }
 
+  //Registers element shown as having been Easy according to user and updates stats accordingly
   handleEasyClick() {
-    //TODO
-
     if (!KanjiStats[curKanji].encountered) {
       KanjiStats[curKanji].encountered = true;
     }
@@ -153,9 +130,8 @@ class App extends React.Component {
     });
   }
 
+  //Registers element shown as having been Hard according to user and updates stats accordingly
   handleHardClick() {
-    //TODO
-
     if (!KanjiStats[curKanji].encountered) {
       KanjiStats[curKanji].encountered = true;
     }
@@ -169,107 +145,82 @@ class App extends React.Component {
     });
   }
 
+  //TODO
+  //Displays settings menu at user's request
   handleSettingsClick() {
     //TODO
     return;
   }
 
+  //The meat and potatoes of the application/UI, this renders the study mode selected as well as all misc. controls and settings
   render() {
-    /*let display = this.state.element;
-    if (!this.state.isFront) {
-      display = this.state.translation;
-    }*/
-
     //May have to pass down mode if you want to let <Card> handle alternating the rendering for Kanji/Vocab/etc
-    return (
-      <div className="container">
-        <div className="header text-center">
-          <h2>OpenJApp Flashcards</h2>
-        </div>
-        <div >
-          <p>Kanji in rotation: {this.state.poolCeiling}</p>
-          <input id="slider" type="range" min="1" max={testKanjiLimit} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
-        </div>
-        <div className="content">
-          <KanjiCard
-            currentElement={this.state.element}
-            isFront={this.state.isFront}
-            cardClick={() => this.handleCardClick()} 
-          />
-        </div>
-        <div className="container-fluid">
-          <AdvancementControls
-            easyClick={() => this.handleEasyClick()}
-            hardClick={() => this.handleHardClick()}
-          />
-          <SettingsControl
-            settingsClick={() => this.handleSettingsClick()}
-          />
-        </div>
-      </div>
-    );
-  }
-}
-
-//Should be unnecessary if events are passed properly
-/*class Slider extends React.Component {
-  constructor(props) {
-    super(props);
-    this.slideRef = React.createRef();
-  }
-}*/
-
-//Do you need to have this be a stateful, class based component if APP is handling all real logic?
-class KanjiCard extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-    };
-  }
-
-  render () {
-    if (this.props.isFront) {
+    if (this.state.mode === "Cards") {
       return (
-        <div className="card" onClick={this.props.cardClick}>
-          <KanjiFront 
-            element={this.props.currentElement}
-          />
+        <div className="container">
+          <div className="header text-center">
+            <h2>OpenJApp Flashcards</h2>
+          </div>
+          <div >
+            <p>{this.state.set} in rotation: {this.state.poolCeiling}</p>
+            <input id="slider" type="range" min="1" max={this.state.poolSize} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
+          </div>
+          <div className="content">
+            <Cards
+              set={this.state.set}
+              currentElement={this.state.element}
+              isFront={this.state.isFront}
+              cardClick={() => this.handleCardClick()} 
+            />
+          </div>
+          <div className="container-fluid">
+            <AdvancementControls
+              easyClick={() => this.handleEasyClick()}
+              hardClick={() => this.handleHardClick()}
+            />
+            <SettingsControl
+              settingsClick={() => this.handleSettingsClick()}
+            />
+          </div>
+        </div>
+      );
+    }
+    else if (this.state.mode === "Quiz") {
+      return (
+        <div className="container">
+          <div className="header text-center">
+            <h2>OpenJApp Flashcards</h2>
+          </div>
+          <div >
+            <p>{this.state.set} in rotation: {this.state.poolCeiling}</p>
+            <input id="slider" type="range" min="1" max={this.state.poolSize} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
+          </div>
+          <div className="content">
+            <div>
+              <h3>Error: Coming soon!</h3>
+            </div>
+          </div>
+          <div className="container-fluid">
+            <SettingsControl
+              settingsClick={() => this.handleSettingsClick()}
+            />
+          </div>
         </div>
       );
     }
     else {
       return (
-        <div className="card" onClick={this.props.cardClick}>
-          <KanjiBack 
-            element={this.props.currentElement}
-          />
+        <div className="container">
+          <div className="header text-center">
+            <h1>Error: Unsupported mode selected</h1>
+          </div>
         </div>
       );
     }
   }
 }
 
-function KanjiFront(props) {
-  return (
-    <div>
-      <h3 className="text-center">{props.element.character}</h3>
-    </div>
-  );
-}
-
-function KanjiBack(props) {
-  return (
-    <div>
-      <h3 className="text-center">{props.element.keyWords}</h3>
-      <hr />
-      <h4 className="cardReadings">On Reading: {props.element.on}</h4>
-      <h4 className="cardReadings">Kun Reading: {props.element.kun}</h4>
-      <hr />
-      <p className="text-center"><a href={'https://jisho.org/search/' + props.element.character + '%23kanji'} target="_blank">Jisho</a></p>
-    </div>
-  );
-}
-
+//Provides "Easy" and "Hard" buttons for users to click in Cards mode and establishes their event triggers
 function AdvancementControls(props) {
   return (
     <div className="row" align="center">
@@ -281,6 +232,7 @@ function AdvancementControls(props) {
   );
 }
 
+//Provides Settings button for users to click in any mode and establishes its event trigger
 function SettingsControl(props) {
   return (
     <div className="row" align="center">
@@ -291,14 +243,12 @@ function SettingsControl(props) {
   );
 }
 
-//class BaseControls for going to next card, establishing review timeframes/difficulty levels?
-//class ExtendedControls for fine tuning all aspects of app, accessed from a drop down menu, a bar, or a button?
-
+//Renders application as a whole
 ReactDOM.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById("root")
 );
 
 // If you want to start measuring performance in your app, pass a function
