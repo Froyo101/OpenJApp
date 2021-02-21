@@ -1,8 +1,8 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import React from 'react';
-import ReactDOM from 'react-dom';
 import './main.css';
 
+//ALERT: Consider reframing component to be within another content or container-fluid div and include AdvControls to the side of current div
 //Stateful component handling all Card mode logic
 export default class Cards extends React.Component {
   constructor(props) {
