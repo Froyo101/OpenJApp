@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import React from 'react';
+import Button from 'react-bootstrap/Button';
 import './main.css';
 
 //ALERT: Consider reframing component to be within another content or container-fluid div and include AdvControls to the side of current div
@@ -14,36 +15,60 @@ export default class Cards extends React.Component {
   render () {
     if (this.props.set === "Kanji" && this.props.isFront) {
       return (
-        <div className="card" onClick={this.props.cardClick}>
-          <KanjiFront 
-            element={this.props.currentElement}
+        <div>
+          <div className="card" onClick={this.props.cardClick}>
+            <KanjiFront 
+              element={this.props.currentElement}
+            />
+          </div>
+          <AdvancementControls 
+            easyClick={this.props.easyClick}
+            hardClick={this.props.hardClick}
           />
         </div>
       );
     }
     else if (this.props.set === "Kanji" && !(this.props.isFront)) {
       return (
-        <div className="card" onClick={this.props.cardClick}>
-          <KanjiBack 
-            element={this.props.currentElement}
+        <div>
+          <div className="card" onClick={this.props.cardClick}>
+            <KanjiBack 
+              element={this.props.currentElement}
+            />
+          </div>
+          <AdvancementControls 
+            easyClick={this.props.easyClick}
+            hardClick={this.props.hardClick}
           />
         </div>
       );
     }
     else if (this.props.set === "Vocab" && this.props.isFront) {
       return (
-        <div className="card" onClick={this.props.cardClick}>
-          <VocabFront
-            element={this.props.currentElement}
+        <div>
+          <div className="card" onClick={this.props.cardClick}>
+            <VocabFront 
+              element={this.props.currentElement}
+            />
+          </div>
+          <AdvancementControls 
+            easyClick={this.props.easyClick}
+            hardClick={this.props.hardClick}
           />
         </div>
       );
     }
     else if (this.props.set === "Vocab" && !(this.props.isFront)) {
       return (
-        <div className="card" onClick={this.props.cardClick}>
-          <VocabBack 
-            element={this.props.currentElement}
+        <div>
+          <div className="card" onClick={this.props.cardClick}>
+            <VocabBack 
+              element={this.props.currentElement}
+            />
+          </div>
+          <AdvancementControls 
+            easyClick={this.props.easyClick}
+            hardClick={this.props.hardClick}
           />
         </div>
       );
@@ -83,12 +108,11 @@ function KanjiBack(props) {
   );
 }
 
-//TODO
 //Displays front of cards generated from the Vocab set
 function VocabFront(props) {
   return (
     <div>
-      <h3 className="text-center">{/*props.element.term*/}</h3>
+      <h3 className="text-center">{props.element.term}</h3>
     </div>
   );
 }
@@ -96,16 +120,31 @@ function VocabFront(props) {
 //TODO
 //Use <p> or h5 for sentences? Center?
 //Displays back of cards generated from the Vocab set
+//Also uses logic for preventing readings fields identical to the full element fields from being displayed
 function VocabBack(props) {
   return (
     <div>
-      <h3 className="text-center">{/*props.element.reading*/}</h3>
-      <h3 className="text-center">{/*props.element.translation*/}</h3>
+      <h3 className="text-center">{props.element.term}</h3>
+      <h4 className="text-center">({(props.element.term === props.element.termReading) ? "N/A" : props.element.termReading})</h4>
+      <h3 className="text-center">{props.element.termTranslation}</h3>
       <hr />
-      <h4 className="cardReadings">Example sentence: {/*props.element.sentence*/}</h4>
-      <h4 className="cardReadings">Translation: {/*props.element.sentenceTranslation*/}</h4>
+      <h4 className="text-center">Example sentence: {props.element.ex}</h4>
+      <h5 className="text-center">Reading: ({(props.element.ex === props.element.exReading) ? "N/A" : props.element.exReading})</h5>
+      <h4 className="text-center">Translation: {props.element.exTranslation}</h4>
       <hr />
-      <p className="text-center"><a href={'https://jisho.org/search/' /*+ props.element.term*/} target="_blank">Jisho</a></p>
+      <p className="text-center"><a href={'https://jisho.org/search/' + props.element.term} target="_blank">Jisho</a></p>
+    </div>
+  );
+}
+
+//Provides "Easy" and "Hard" buttons for users to click in Cards mode and establishes their event triggers
+function AdvancementControls(props) {
+  return (
+    <div className="row" align="center">
+      <div className="col">
+        <Button className="advButton" onClick={props.easyClick}>Easy</Button>
+        <Button className="advButton" onClick={props.hardClick}>Hard</Button>
+      </div>
     </div>
   );
 }

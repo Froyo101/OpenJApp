@@ -1,4 +1,4 @@
-# OpenJApp Scaling Flashcards Utility
+# OpenJApp Study Utility
 
 ![Flashcard Front](https://github.com/Froyo101/scaling-flashcards/blob/main/OpenJAppAlphaCardFront.png?raw=true)
 

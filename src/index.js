@@ -1,13 +1,14 @@
 import 'bootstrap/dist/css/bootstrap.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
 import './main.css';
 import Cards from './Cards.js';
 //import Quiz from './Quiz.js';
 //import Settings/Preferences from './Settings/Preferences.js'
 import {Kanji} from './Kanji.js';
-//import {Core} from './Vocab.js';
+import {Vocab} from './Vocab.js';
 //import reportWebVitals from './reportWebVitals';
 
 //GENERAL PRINCIPLE TO REMEMBER: Most controlling logic should be raised to the highest level possible to ensure easy implementation of future app controls
@@ -17,7 +18,7 @@ import {Kanji} from './Kanji.js';
   //Cap serving percentages at ~2.5-5% min and ~95-100% max to avoid cards permanently dropping from available pool - DONE!
   //Store stats on client browser - DONE!
 //1.x (WE ARE HERE):
-  //Add a Core2k/6k (vocab) bank and mode
+  //Add a Core2k/6k (vocab) bank and mode - DONE!
 //2.0:
   //Add a multiple choice quiz mode
 //2.x:
@@ -34,13 +35,13 @@ import {Kanji} from './Kanji.js';
     //being added)
 
 //Loads or establishes and initializes array of user stats for Kanji objects
-var successfulLoad = false;
+var successfulKanjiLoad = false;
 
-//Loading and parsing logic
+//Kanji set loading and parsing logic
 if (localStorage.getItem("KanjiStats")) {
   try {
     var KanjiStats = JSON.parse(localStorage.getItem("KanjiStats"));
-    successfulLoad = true;
+    successfulKanjiLoad = true;
     console.log("KanjiStats successfully parsed.");
   }
   catch (ex) {
@@ -49,7 +50,7 @@ if (localStorage.getItem("KanjiStats")) {
 }
 
 //Initialization logic in the event a preexisting stats object can't be fetched
-if (!successfulLoad) {
+if (!successfulKanjiLoad) {
   var KanjiStats = [];
   for (var i = 0; i < 2300; i++) {
     KanjiStats[i] = {
@@ -62,17 +63,44 @@ if (!successfulLoad) {
   console.log("New KanjiStats generated.");
 }
 
-//Hold current linguistic elements
-var curKanji;
-//var curVocab;
+//Loads or establishes and initializes array of user stats for Vocab objects
+var successfulVocabLoad = false;
+
+//Kanji set loading and parsing logic
+if (localStorage.getItem("VocabStats")) {
+  try {
+    var VocabStats = JSON.parse(localStorage.getItem("VocabStats"));
+    successfulVocabLoad = true;
+    console.log("VocabStats successfully parsed.");
+  }
+  catch (ex) {
+    console.error(ex);
+  }
+}
+
+//Initialization logic in the event a preexisting stats object can't be fetched
+if (!successfulVocabLoad) {
+  var VocabStats = [];
+  for (var i = 0; i < 5999; i++) {
+    VocabStats[i] = {
+      encountered: false,
+      flagged: false,
+      easy: 0,
+      hard: 0
+    };
+  }
+  console.log("New VocabStats generated.");
+}
+
+//Hold current linguistic element's index
+var curElement = 0;
 
 //Constants detailing array lengths at startup
-const kanjiSetLength = 2300;
-//const vocabSetLength = Core.length;
+const kanjiSetLength = Kanji.length;
+const vocabSetLength = Vocab.length;
 
 //Algorithm that handles weighted/scaling serving of linguistic elements in Cards mode
-//Have a public method called serveContent for both or serveKanji and serveVocab for each individual option?
-function serveKanji(poolFloor, poolCeiling) {
+function serveContent(set, stats, ogElement, poolFloor, poolCeiling) {
   console.log("Floor and ceiling: " + poolFloor + ' ' + poolCeiling);
   
   let min = Math.ceil(poolFloor - 1);
@@ -80,18 +108,30 @@ function serveKanji(poolFloor, poolCeiling) {
   console.log("Min and max: " + min + ' ' + max);
   
   let testing = true;
+  let newElement;
   while (testing) {
-    curKanji = Math.floor(Math.random() * (max - min + 1)) + min;
-    console.log("curKanji " + curKanji);
-    console.log("ID " + Kanji[curKanji].ID);
+    newElement = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    if (newElement != ogElement) {
+      console.log("New element picked, " + newElement + " vs. " + ogElement);
+      curElement = newElement;
+    }
+    else {
+      console.log("Continue reached");
+      continue;
+    }
+
+    console.log("curElement " + curElement);
+    console.log("Item " + set[curElement]);
 
     //Always returns selected element if it's never been seen before
-    if (!KanjiStats[curKanji].encountered) {
-      return Kanji[curKanji];
+    if (!stats[curElement].encountered) {
+      testing = false;
+      return set[curElement];
     }
     
     //Second pass where difficulty of selected element is considered
-    let difference = KanjiStats[curKanji].easy - KanjiStats[curKanji].hard;
+    let difference = stats[curElement].easy - stats[curElement].hard;
     let selectionBar = 0.5 * Math.pow(1.2, difference);
 
     //Ensures an elements appearance rate won't become either wholly impossible or a certainty with extreme difference values 
@@ -105,7 +145,8 @@ function serveKanji(poolFloor, poolCeiling) {
     console.log("Bias: " + selectionBar);
 
     if (Math.random() > selectionBar) {
-      return Kanji[curKanji];
+      testing = false;
+      return set[curElement];
     }
   }
   
@@ -120,13 +161,36 @@ class App extends React.Component {
     this.state = {
       mode: "Cards",
       set: "Kanji",
-      element: serveKanji(1, 10),
-      //translation: 'Start',
+      element: serveContent(Kanji, KanjiStats, curElement, 1, 10),
       isFront: true,
       poolSize: kanjiSetLength,
       poolFloor: 1,
       poolCeiling: 25,
     };
+  }
+
+  //Swaps study set to Kanji
+  swapKanjiSet() {
+    this.setState({
+      set: "Kanji",
+      element: serveContent(Kanji, KanjiStats, curElement, 1, 10),
+      isFront: true,
+      poolSize: kanjiSetLength,
+      poolFloor: 1,
+      poolCeiling: 25
+    });
+  }
+
+  //Swaps study set to Vocab
+  swapVocabSet() {
+    this.setState({
+      set: "Vocab",
+      element: serveContent(Vocab, VocabStats, curElement, 1, 10),
+      isFront: true,
+      poolSize: vocabSetLength,
+      poolFloor: 1,
+      poolCeiling: 25
+    });
   }
 
   //Adjusts poolCeiling state according to slider value
@@ -145,42 +209,74 @@ class App extends React.Component {
 
   //Registers element shown as having been Easy according to user and updates stats accordingly
   handleEasyClick() {
-    if (!KanjiStats[curKanji].encountered) {
-      KanjiStats[curKanji].encountered = true;
+    if (this.state.set === "Kanji") {
+      if (!KanjiStats[curElement].encountered) {
+        KanjiStats[curElement].encountered = true;
+      }
+  
+      KanjiStats[curElement].easy++;
+      console.log("Easy encounters: " + KanjiStats[curElement].easy);
+  
+      this.setState({
+        isFront: true,
+        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling)
+      });
     }
-
-    KanjiStats[curKanji].easy++;
-    console.log("Easy encounters: " + KanjiStats[curKanji].easy);
-
-    this.setState({
-      isFront: true,
-      element: serveKanji(this.state.poolFloor, this.state.poolCeiling)
-    });
+    else if (this.state.set === "Vocab") {
+      if (!VocabStats[curElement].encountered) {
+        VocabStats[curElement].encountered = true;
+      }
+  
+      VocabStats[curElement].easy++;
+      console.log("Easy encounters: " + VocabStats[curElement].easy);
+  
+      this.setState({
+        isFront: true,
+        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling)
+      });
+    }
   }
 
   //Registers element shown as having been Hard according to user and updates stats accordingly
   handleHardClick() {
-    if (!KanjiStats[curKanji].encountered) {
-      KanjiStats[curKanji].encountered = true;
+    if (this.state.set === "Kanji") {
+      if (!KanjiStats[curElement].encountered) {
+        KanjiStats[curElement].encountered = true;
+      }
+  
+      KanjiStats[curElement].hard++;
+      console.log("Hard encounters: " + KanjiStats[curElement].hard);
+  
+      this.setState({
+        isFront: true,
+        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling)
+      });
     }
-
-    KanjiStats[curKanji].hard++;
-    console.log("Hard encounters: " + KanjiStats[curKanji].hard);
-
-    this.setState({
-      isFront: true,
-      element: serveKanji(this.state.poolFloor, this.state.poolCeiling)
-    });
+    else if (this.state.set === "Vocab") {
+      if (!VocabStats[curElement].encountered) {
+        VocabStats[curElement].encountered = true;
+      }
+  
+      VocabStats[curElement].hard++;
+      console.log("Hard encounters: " + VocabStats[curElement].hard);
+  
+      this.setState({
+        isFront: true,
+        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling)
+      });
+    }
   }
 
   //Saves stats objects using localStorage API
   handleSaveClick() {
     localStorage.setItem("KanjiStats", JSON.stringify(KanjiStats));
+    localStorage.setItem("VocabStats", JSON.stringify(VocabStats));
+    alert("Stats saved successfully!");
   }
 
   //Resets stats objects to a clean slate
   handleResetClick() {
-    for (var i = 0; i < 2300; i++) {
+    for (var i = 0; i < kanjiSetLength; i++) {
       KanjiStats[i] = {
         encountered: false,
         flagged: false,
@@ -188,14 +284,33 @@ class App extends React.Component {
         hard: 0
       };
     }
+    for (var i = 0; i < vocabSetLength; i++) {
+      VocabStats[i] = {
+        encountered: false,
+        flagged: false,
+        easy: 0,
+        hard: 0
+      };
+    }
+    alert("Stats successfully reset.")
   }
 
   //TODO
   //Displays settings menu at user's request
   handleSettingsClick() {
     //TODO
+    alert("This feature is presently not available.");
     return;
   }
+
+  //Alt TitleBar/Mode Menu
+  /*
+  <h2>OpenJApp Flashcards</h2>
+    <div class="btn-group rtl">
+      <Button variant="outline-secondary">Kanji</Button>
+      <Button>Vocab</Button>
+    </div>
+  */
 
   //The meat and potatoes of the application/UI, this renders the study mode selected as well as all misc. controls and settings
   render() {
@@ -203,26 +318,27 @@ class App extends React.Component {
     if (this.state.mode === "Cards") {
       return (
         <div className="container">
-          <div className="header text-center">
-            <h2>OpenJApp Flashcards</h2>
-          </div>
-          <div >
-            <p>{this.state.set} in rotation: {this.state.poolCeiling}</p>
-            <input id="slider" type="range" min="1" max={this.state.poolSize} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
+          <TitleBar
+            set={this.state.set}
+            kanjiClick={() => this.swapKanjiSet()}
+            vocabClick={() => this.swapVocabSet()}
+          />
+          <br></br>
+          <div>
+            <p style={{padding: "10px 0px 3px 10px"}}>{this.state.set} in rotation: {this.state.poolCeiling}</p>
+            <input id="slider" type="range" min="2" max={this.state.poolSize} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
           </div>
           <div className="content">
             <Cards
               set={this.state.set}
               currentElement={this.state.element}
               isFront={this.state.isFront}
-              cardClick={() => this.handleCardClick()} 
-            />
-          </div>
-          <div className="container-fluid">
-            <AdvancementControls
+              cardClick={() => this.handleCardClick()}
               easyClick={() => this.handleEasyClick()}
               hardClick={() => this.handleHardClick()}
             />
+          </div>
+          <div className="container-fluid">
             <SettingsControl
               saveClick={() => this.handleSaveClick()}
               resetClick={() => this.handleResetClick()}
@@ -269,16 +385,15 @@ class App extends React.Component {
   }
 }
 
-//ALERT: This is currently a prime candidate for refactoring by means of moving to and integrating with Cards
-//Provides "Easy" and "Hard" buttons for users to click in Cards mode and establishes their event triggers
-function AdvancementControls(props) {
+function TitleBar(props) {
   return (
-    <div className="row" align="center">
-      <div className="col">
-        <Button className="advButton" onClick={props.easyClick}>Easy</Button>
-        <Button className="advButton" onClick={props.hardClick}>Hard</Button>
+    <Navbar bg="titleBar" variant="dark">
+      <h3 className="text-center">OpenJApp</h3>
+      <div className="btn-group rtl">
+        <Button variant={(props.set === "Kanji") ? "primary" : "outline-secondary"} onClick={props.kanjiClick}>Kanji</Button>
+        <Button variant={(props.set === "Vocab") ? "primary" : "outline-secondary"} onClick={props.vocabClick}>Vocab</Button>
       </div>
-    </div>
+    </Navbar>
   );
 }
 

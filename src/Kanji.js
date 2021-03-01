@@ -16109,6 +16109,6 @@ var Kanji = [
       "on": "コウ*",
       "kun": "にじ"
     }
-   ]
+   ];
 
 export {Kanji};
