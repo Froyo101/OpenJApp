@@ -23,6 +23,10 @@ code {
   margin-left: auto;
 }
 
+.btnGroupMargin {
+  margin-left: 10px;
+}
+
 .container {
   background-color: #383838;
   color: antiquewhite;
@@ -57,3 +61,38 @@ code {
 .settingsButton {
   margin: 5px;
 }
+
+.prompt {
+  margin: auto;
+  width: 50%;
+  background-color: #454545;
+  color: antiquewhite;
+  border-radius: 15px;
+  padding: 50px;
+}
+
+.answer {
+  background-color: #454545;
+  color: antiquewhite;
+  border-radius: 15px;
+  margin: 20px;
+  padding: 30px 30px 20px 30px;
+}
+
+@keyframes right {
+  0% {background-color: #454545;}
+  50% {background-color: green;}
+  100% {background-color: #454545;}
+}
+
+@keyframes wrong {
+  0% {background-color: #454545;}
+  50% {background-color: red;}
+  100% {background-color: #454545;}
+}
+
+@keyframes null {
+  0% {background-color: #454545;}
+  100% {background-color: yellow;}
+}
+

@@ -5,7 +5,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Button from 'react-bootstrap/Button';
 import './main.css';
 import Cards from './Cards.js';
-//import Quiz from './Quiz.js';
+import Quiz from './Quiz.js';
 //import Settings/Preferences from './Settings/Preferences.js'
 import {Kanji} from './Kanji.js';
 import {Vocab} from './Vocab.js';
@@ -17,11 +17,12 @@ import {Vocab} from './Vocab.js';
 //1.0:
   //Cap serving percentages at ~2.5-5% min and ~95-100% max to avoid cards permanently dropping from available pool - DONE!
   //Store stats on client browser - DONE!
-//1.x (WE ARE HERE):
+//1.x:
   //Add a Core2k/6k (vocab) bank and mode - DONE!
 //2.0:
-  //Add a multiple choice quiz mode
-//2.x:
+  //Add a multiple choice quiz mode - DONE!
+  //Change HTML page name! - DONE!
+//2.x (WE ARE HERE):
   //Pop up settings menu that allows user to personalize experience
 
 //~6.5 weeks to complete this, 1+ week for docs, 1+ weeks for testing
@@ -99,6 +100,9 @@ var curElement = 0;
 const kanjiSetLength = Kanji.length;
 const vocabSetLength = Vocab.length;
 
+//Keeps track of quiz options with altered style
+var quizAlteredOptions = [];
+
 //Algorithm that handles weighted/scaling serving of linguistic elements in Cards mode
 function serveContent(set, stats, ogElement, poolFloor, poolCeiling) {
   console.log("Floor and ceiling: " + poolFloor + ' ' + poolCeiling);
@@ -163,9 +167,12 @@ class App extends React.Component {
       set: "Kanji",
       element: serveContent(Kanji, KanjiStats, curElement, 1, 10),
       isFront: true,
+      quizWrong: false,
       poolSize: kanjiSetLength,
       poolFloor: 1,
       poolCeiling: 25,
+      cardsCount: 0,
+      quizCount: 0
     };
   }
 
@@ -175,6 +182,7 @@ class App extends React.Component {
       set: "Kanji",
       element: serveContent(Kanji, KanjiStats, curElement, 1, 10),
       isFront: true,
+      quizWrong: false,
       poolSize: kanjiSetLength,
       poolFloor: 1,
       poolCeiling: 25
@@ -187,10 +195,63 @@ class App extends React.Component {
       set: "Vocab",
       element: serveContent(Vocab, VocabStats, curElement, 1, 10),
       isFront: true,
+      quizWrong: false,
       poolSize: vocabSetLength,
       poolFloor: 1,
       poolCeiling: 25
     });
+  }
+
+  //Swaps study mode to Cards
+  swapCardsMode() {
+    if (this.state.set === "Kanji") {
+      this.setState({
+        mode: "Cards",
+        element: serveContent(Kanji, KanjiStats, curElement, 1, 10),
+        isFront: true,
+        quizWrong: false,
+        poolSize: kanjiSetLength,
+        poolFloor: 1,
+        poolCeiling: 25
+      });
+    }
+    else if (this.state.set === "Vocab") {
+      this.setState({
+        mode: "Cards",
+        element: serveContent(Vocab, VocabStats, curElement, 1, 10),
+        isFront: true,
+        quizWrong: false,
+        poolSize: vocabSetLength,
+        poolFloor: 1,
+        poolCeiling: 25
+      });
+    }
+  }
+
+  //Swaps study mode to Quiz
+  swapQuizMode() {
+    if (this.state.set === "Kanji") {
+      this.setState({
+        mode: "Quiz",
+        element: serveContent(Kanji, KanjiStats, curElement, 1, 10),
+        isFront: true,
+        quizWrong: false,
+        poolSize: kanjiSetLength,
+        poolFloor: 1,
+        poolCeiling: 25
+      });
+    }
+    else if (this.state.set === "Vocab") {
+      this.setState({
+        mode: "Quiz",
+        element: serveContent(Vocab, VocabStats, curElement, 1, 10),
+        isFront: true,
+        quizWrong: false,
+        poolSize: vocabSetLength,
+        poolFloor: 1,
+        poolCeiling: 25
+      });
+    }
   }
 
   //Adjusts poolCeiling state according to slider value
@@ -217,10 +278,11 @@ class App extends React.Component {
       KanjiStats[curElement].easy++;
       console.log("Easy encounters: " + KanjiStats[curElement].easy);
   
-      this.setState({
+      this.setState((prevState) => ({
         isFront: true,
-        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling)
-      });
+        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling),
+        cardsCount: prevState.cardsCount + 1
+      }));
     }
     else if (this.state.set === "Vocab") {
       if (!VocabStats[curElement].encountered) {
@@ -230,10 +292,11 @@ class App extends React.Component {
       VocabStats[curElement].easy++;
       console.log("Easy encounters: " + VocabStats[curElement].easy);
   
-      this.setState({
+      this.setState((prevState) => ({
         isFront: true,
-        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling)
-      });
+        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling),
+        cardsCount: prevState.cardsCount + 1
+      }));
     }
   }
 
@@ -247,10 +310,11 @@ class App extends React.Component {
       KanjiStats[curElement].hard++;
       console.log("Hard encounters: " + KanjiStats[curElement].hard);
   
-      this.setState({
+      this.setState((prevState) => ({
         isFront: true,
-        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling)
-      });
+        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling),
+        cardsCount: prevState.cardsCount + 1
+      }));
     }
     else if (this.state.set === "Vocab") {
       if (!VocabStats[curElement].encountered) {
@@ -260,11 +324,139 @@ class App extends React.Component {
       VocabStats[curElement].hard++;
       console.log("Hard encounters: " + VocabStats[curElement].hard);
   
-      this.setState({
+      this.setState((prevState) => ({
         isFront: true,
-        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling)
-      });
+        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling),
+        cardsCount: prevState.cardsCount + 1
+      }));
     }
+  }
+
+  handleAnswerClick(e) {
+    console.log("Answer: " + e.target.textContent);
+    console.log("Node Name: " + e.target.nodeName);
+    console.log("Current Element: " + this.state.element.character);
+    
+    if (this.state.set === "Kanji") {
+      if (this.state.element.keyWords === e.target.textContent) {
+        this.resetQuizStyle();
+
+        if (e.target.nodeName === "P") {
+          e.target.parentElement.setAttribute("style", "background-color: green;");
+          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target.parentElement);
+        }
+        else {
+          e.target.setAttribute("style", "background-color: green;");
+          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target);
+        }
+
+        setTimeout(this.resetQuizStyle, 500);
+      }
+      else {
+        if (e.target.nodeName === "P") {
+          e.target.parentElement.setAttribute("style", "background-color: red;");
+          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target.parentElement);
+        }
+        else {
+          e.target.setAttribute("style", "background-color: red;");
+          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target);
+        }
+
+        this.setState({
+          quizWrong: true
+        });
+
+        return;
+      }
+      
+      if (!KanjiStats[curElement].encountered) {
+        KanjiStats[curElement].encountered = true;
+      }
+
+      if (this.state.quizWrong) {
+        KanjiStats[curElement].hard++;
+        console.log("Hard encounters: " + KanjiStats[curElement].hard);
+      }
+      else {
+        KanjiStats[curElement].easy++;
+        console.log("Easy encounters: " + KanjiStats[curElement].easy);
+      }
+
+      this.setState((prevState) => ({
+        quizWrong: false,
+        element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling),
+        quizCount: prevState.quizCount + 1
+      }));
+    }
+    else if (this.state.set === "Vocab") {
+      if (this.state.element.termTranslation === e.target.textContent) {
+        this.resetQuizStyle();
+
+        if (e.target.nodeName === "P") {
+          e.target.parentElement.setAttribute("style", "background-color: green;");
+          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target.parentElement);
+        }
+        else {
+          e.target.setAttribute("style", "background-color: green;");
+          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target);
+        }
+
+        setTimeout(this.resetQuizStyle, 500);
+      }
+      else {
+        if (e.target.nodeName === "P") {
+          e.target.parentElement.setAttribute("style", "background-color: red;");
+          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target.parentElement);
+        }
+        else {
+          e.target.setAttribute("style", "background-color: red;");
+          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
+          quizAlteredOptions.push(e.target);
+        }
+
+        this.setState({
+          quizWrong: true
+        });
+
+        return;
+      }
+      
+      if (!VocabStats[curElement].encountered) {
+        VocabStats[curElement].encountered = true;
+      }
+
+      if (this.state.quizWrong) {
+        VocabStats[curElement].hard++;
+        console.log("Hard encounters: " + VocabStats[curElement].hard);
+      }
+      else {
+        VocabStats[curElement].easy++;
+        console.log("Easy encounters: " + VocabStats[curElement].easy);
+      }
+
+      this.setState((prevState) => ({
+        quizWrong: false,
+        element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling),
+        quizCount: prevState.quizCount + 1
+      }));
+    }
+  }
+
+  resetQuizStyle() {
+    let i;
+
+    for (i = 0; i < quizAlteredOptions.length; i++) {
+      quizAlteredOptions[i].setAttribute("style", "background-color: #454545;")
+    }
+
+    quizAlteredOptions = [];
   }
 
   //Saves stats objects using localStorage API
@@ -312,6 +504,14 @@ class App extends React.Component {
     </div>
   */
 
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextState.quizWrong === true) {
+      return false;
+    }
+
+    return true;
+  }
+
   //The meat and potatoes of the application/UI, this renders the study mode selected as well as all misc. controls and settings
   render() {
     //May have to pass down mode if you want to let <Card> handle alternating the rendering for Kanji/Vocab/etc
@@ -320,13 +520,16 @@ class App extends React.Component {
         <div className="container">
           <TitleBar
             set={this.state.set}
-            kanjiClick={() => this.swapKanjiSet()}
-            vocabClick={() => this.swapVocabSet()}
+            mode={this.state.mode}
+            kanjiSetClick={() => this.swapKanjiSet()}
+            vocabSetClick={() => this.swapVocabSet()}
+            cardsModeClick={() => this.swapCardsMode()}
+            quizModeClick={() => this.swapQuizMode()}
           />
           <br></br>
           <div>
             <p style={{padding: "10px 0px 3px 10px"}}>{this.state.set} in rotation: {this.state.poolCeiling}</p>
-            <input id="slider" type="range" min="2" max={this.state.poolSize} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
+            <input id="slider" type="range" min="10" max={this.state.poolSize} step="5" value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
           </div>
           <div className="content">
             <Cards
@@ -344,6 +547,8 @@ class App extends React.Component {
               resetClick={() => this.handleResetClick()}
               settingsClick={() => this.handleSettingsClick()}
             />
+            <br></br>
+            <p className="text-center">Cards reviewed this session: {this.state.cardsCount}</p>
           </div>
         </div>
       );
@@ -351,17 +556,27 @@ class App extends React.Component {
     else if (this.state.mode === "Quiz") {
       return (
         <div className="container">
-          <div className="header text-center">
-            <h2>OpenJApp Flashcards</h2>
-          </div>
+          <TitleBar
+            set={this.state.set}
+            mode={this.state.mode}
+            kanjiSetClick={() => this.swapKanjiSet()}
+            vocabSetClick={() => this.swapVocabSet()}
+            cardsModeClick={() => this.swapCardsMode()}
+            quizModeClick={() => this.swapQuizMode()}
+          />
+          <br></br>
           <div >
             <p>{this.state.set} in rotation: {this.state.poolCeiling}</p>
-            <input id="slider" type="range" min="1" max={this.state.poolSize} value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
+            <input id="slider" type="range" min="10" max={this.state.poolSize} step="5" value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
           </div>
           <div className="content">
-            <div>
-              <h3>Error: Coming soon!</h3>
-            </div>
+            <Quiz
+              set={this.state.set} 
+              currentElement={this.state.element}
+              poolFloor={this.state.poolFloor}
+              poolCeiling={this.state.poolCeiling}
+              answerClick={e => this.handleAnswerClick(e)}
+            />
           </div>
           <div className="container-fluid">
             <SettingsControl
@@ -369,6 +584,8 @@ class App extends React.Component {
               resetClick={() => this.handleResetClick()}
               settingsClick={() => this.handleSettingsClick()}
             />
+            <br></br>
+            <p className="text-center">Questions reviewed this session: {this.state.quizCount}</p>
           </div>
         </div>
       );
@@ -388,10 +605,14 @@ class App extends React.Component {
 function TitleBar(props) {
   return (
     <Navbar bg="titleBar" variant="dark">
-      <h3 className="text-center">OpenJApp</h3>
+      <h3 className="text-center">OpenJApp v2.0</h3>
       <div className="btn-group rtl">
-        <Button variant={(props.set === "Kanji") ? "primary" : "outline-secondary"} onClick={props.kanjiClick}>Kanji</Button>
-        <Button variant={(props.set === "Vocab") ? "primary" : "outline-secondary"} onClick={props.vocabClick}>Vocab</Button>
+        <Button variant={(props.set === "Kanji") ? "primary" : "outline-secondary"} onClick={props.kanjiSetClick}>Kanji</Button>
+        <Button variant={(props.set === "Vocab") ? "primary" : "outline-secondary"} onClick={props.vocabSetClick}>Vocab</Button>
+      </div>
+      <div className="btn-group btnGroupMargin">
+        <Button variant={(props.mode === "Cards") ? "primary" : "outline-secondary"} onClick={props.cardsModeClick}>Cards</Button>
+        <Button variant={(props.mode === "Quiz") ? "primary" : "outline-secondary"} onClick={props.quizModeClick}>Quiz</Button>
       </div>
     </Navbar>
   );
