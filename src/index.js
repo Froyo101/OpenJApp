@@ -23,9 +23,7 @@ import {Vocab} from './Vocab.js';
   //Add a multiple choice quiz mode - DONE!
   //Change HTML page name! - DONE!
 //2.x (WE ARE HERE):
-  //Pop up settings menu that allows user to personalize experience
-
-//~6.5 weeks to complete this, 1+ week for docs, 1+ weeks for testing
+  //Pop up settings menu that allows user to personalize experience - DONE!
 
 //Misc/Possible Future Features (all x.x unless roadmap revised to include):
   //Add a starring/bookmarking feature and viewing list
@@ -172,7 +170,9 @@ class App extends React.Component {
       poolFloor: 1,
       poolCeiling: 25,
       cardsCount: 0,
-      quizCount: 0
+      quizCount: 0,
+      displaySettings: false,
+      displayCount: true
     };
   }
 
@@ -332,6 +332,7 @@ class App extends React.Component {
     }
   }
 
+  //Handles determining whether an answer is right or wrong in Quiz mode and updates app accordingly
   handleAnswerClick(e) {
     console.log("Answer: " + e.target.textContent);
     console.log("Node Name: " + e.target.nodeName);
@@ -343,12 +344,10 @@ class App extends React.Component {
 
         if (e.target.nodeName === "P") {
           e.target.parentElement.setAttribute("style", "background-color: green;");
-          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target.parentElement);
         }
         else {
           e.target.setAttribute("style", "background-color: green;");
-          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target);
         }
 
@@ -357,12 +356,10 @@ class App extends React.Component {
       else {
         if (e.target.nodeName === "P") {
           e.target.parentElement.setAttribute("style", "background-color: red;");
-          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target.parentElement);
         }
         else {
           e.target.setAttribute("style", "background-color: red;");
-          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target);
         }
 
@@ -398,12 +395,10 @@ class App extends React.Component {
 
         if (e.target.nodeName === "P") {
           e.target.parentElement.setAttribute("style", "background-color: green;");
-          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target.parentElement);
         }
         else {
           e.target.setAttribute("style", "background-color: green;");
-          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target);
         }
 
@@ -412,12 +407,10 @@ class App extends React.Component {
       else {
         if (e.target.nodeName === "P") {
           e.target.parentElement.setAttribute("style", "background-color: red;");
-          //e.target.parentElement.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target.parentElement);
         }
         else {
           e.target.setAttribute("style", "background-color: red;");
-          //e.target.setAttribute("style", "animation-name: ; animation-duration: ; animation-fill-mode: ");
           quizAlteredOptions.push(e.target);
         }
 
@@ -449,6 +442,7 @@ class App extends React.Component {
     }
   }
 
+  //Resets all quiz option styles to their defaults
   resetQuizStyle() {
     let i;
 
@@ -487,23 +481,24 @@ class App extends React.Component {
     alert("Stats successfully reset.")
   }
 
-  //TODO
-  //Displays settings menu at user's request
+  //Displays or hides settings menu at user's request
   handleSettingsClick() {
-    //TODO
-    alert("This feature is presently not available.");
-    return;
+    this.setState((prevState) => ({
+      displaySettings: !prevState.displaySettings
+    }));
   }
 
-  //Alt TitleBar/Mode Menu
-  /*
-  <h2>OpenJApp Flashcards</h2>
-    <div class="btn-group rtl">
-      <Button variant="outline-secondary">Kanji</Button>
-      <Button>Vocab</Button>
-    </div>
-  */
+  //Takes user to Help/FAQ document
+  handleHelpClick() {
+    alert("This feature is presently not available.");
+  }
 
+  //Takes user to Github page
+  handleContributeClick() {
+    window.open("https://github.com/Froyo101/OpenJApp", "_blank");
+  }
+
+  //Prevents re-rendering upon selecting an inaccurate answer option in quiz mode
   shouldComponentUpdate(nextProps, nextState) {
     if (nextState.quizWrong === true) {
       return false;
@@ -514,19 +509,22 @@ class App extends React.Component {
 
   //The meat and potatoes of the application/UI, this renders the study mode selected as well as all misc. controls and settings
   render() {
-    //May have to pass down mode if you want to let <Card> handle alternating the rendering for Kanji/Vocab/etc
     if (this.state.mode === "Cards") {
       return (
         <div className="container">
           <TitleBar
-            set={this.state.set}
             mode={this.state.mode}
-            kanjiSetClick={() => this.swapKanjiSet()}
-            vocabSetClick={() => this.swapVocabSet()}
             cardsModeClick={() => this.swapCardsMode()}
             quizModeClick={() => this.swapQuizMode()}
           />
           <br></br>
+          <div className="container-fluid">
+          <SetControl
+            set={this.state.set}
+            kanjiSetClick={() => this.swapKanjiSet()}
+            vocabSetClick={() => this.swapVocabSet()}
+          />
+          </div>
           <div>
             <p style={{padding: "10px 0px 3px 10px"}}>{this.state.set} in rotation: {this.state.poolCeiling}</p>
             <input id="slider" type="range" min="10" max={this.state.poolSize} step="5" value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
@@ -542,12 +540,14 @@ class App extends React.Component {
             />
           </div>
           <div className="container-fluid">
-            <SettingsControl
+            <Settings
+              displaySettings={this.state.displaySettings}
+              settingsClick={() => this.handleSettingsClick()}
               saveClick={() => this.handleSaveClick()}
               resetClick={() => this.handleResetClick()}
-              settingsClick={() => this.handleSettingsClick()}
+              helpClick={() => this.handleHelpClick()}
+              contributeClick={() => this.handleContributeClick()}
             />
-            <br></br>
             <p className="text-center">Cards reviewed this session: {this.state.cardsCount}</p>
           </div>
         </div>
@@ -557,14 +557,18 @@ class App extends React.Component {
       return (
         <div className="container">
           <TitleBar
-            set={this.state.set}
             mode={this.state.mode}
-            kanjiSetClick={() => this.swapKanjiSet()}
-            vocabSetClick={() => this.swapVocabSet()}
             cardsModeClick={() => this.swapCardsMode()}
             quizModeClick={() => this.swapQuizMode()}
           />
           <br></br>
+          <div className="container-fluid">
+          <SetControl
+            set={this.state.set}
+            kanjiSetClick={() => this.swapKanjiSet()}
+            vocabSetClick={() => this.swapVocabSet()}
+          />
+          </div>
           <div >
             <p>{this.state.set} in rotation: {this.state.poolCeiling}</p>
             <input id="slider" type="range" min="10" max={this.state.poolSize} step="5" value={this.state.poolCeiling} onChange={e => this.handleSliderChange(e)} />
@@ -579,12 +583,14 @@ class App extends React.Component {
             />
           </div>
           <div className="container-fluid">
-            <SettingsControl
+            <Settings
+              displaySettings={this.state.displaySettings}
+              settingsClick={() => this.handleSettingsClick()}
               saveClick={() => this.handleSaveClick()}
               resetClick={() => this.handleResetClick()}
-              settingsClick={() => this.handleSettingsClick()}
+              helpClick={() => this.handleHelpClick()}
+              contributeClick={() => this.handleContributeClick()}
             />
-            <br></br>
             <p className="text-center">Questions reviewed this session: {this.state.quizCount}</p>
           </div>
         </div>
@@ -602,15 +608,12 @@ class App extends React.Component {
   }
 }
 
+//Displays title bar for app, including the mode selection button group within
 function TitleBar(props) {
   return (
     <Navbar bg="titleBar" variant="dark">
-      <h3 className="text-center">OpenJApp v2.0</h3>
+      <h3 className="text-center">OpenJApp</h3>
       <div className="btn-group rtl">
-        <Button variant={(props.set === "Kanji") ? "primary" : "outline-secondary"} onClick={props.kanjiSetClick}>Kanji</Button>
-        <Button variant={(props.set === "Vocab") ? "primary" : "outline-secondary"} onClick={props.vocabSetClick}>Vocab</Button>
-      </div>
-      <div className="btn-group btnGroupMargin">
         <Button variant={(props.mode === "Cards") ? "primary" : "outline-secondary"} onClick={props.cardsModeClick}>Cards</Button>
         <Button variant={(props.mode === "Quiz") ? "primary" : "outline-secondary"} onClick={props.quizModeClick}>Quiz</Button>
       </div>
@@ -618,17 +621,58 @@ function TitleBar(props) {
   );
 }
 
-//Provides Settings button for users to click in any mode and establishes its event trigger
-function SettingsControl(props) {
+//Displays set selection button group
+function SetControl(props) {
   return (
-    <div className="row" align="center">
-      <div className="col">
-        <Button className="settingsButton" onClick={props.saveClick}>Save Stats</Button>
-        <Button className="settingsButton" onClick={props.resetClick}>Reset Stats</Button>
-        <Button className="settingsButton" variant="outline-secondary" onClick={props.settingsClick}>⚙️</Button>
-      </div>
+    <div className="btn-group auto" align="center">
+      <Button variant={(props.set === "Kanji") ? "primary" : "outline-secondary"} onClick={props.kanjiSetClick}>Kanji</Button>
+      <Button variant={(props.set === "Vocab") ? "primary" : "outline-secondary"} onClick={props.vocabSetClick}>Vocab</Button>
     </div>
   );
+}
+
+//Provides Settings button for users to click and, when pressed, renders the settings menu itself
+function Settings(props) {
+  if (props.displaySettings) {
+    return (
+      <div>
+        <div className="row" align="center">
+          <div className="col">
+            <Button variant={(props.displaySettings) ? "primary" : "outline-secondary"} className="settingsButton" onClick={props.settingsClick}>⚙️</Button>
+          </div>
+        </div>
+        <br></br>
+        <div className="content settings">
+        <div className="row" align="center">
+          <div className="col">
+            <Button className="settingsButton" onClick={props.saveClick}>Save Stats</Button>
+            <Button className="settingsButton" onClick={props.resetClick}>Reset Stats</Button>
+          </div>
+        </div>
+        <div className="row" align="center">
+          <div className="col">
+            <Button className="settingsButton" onClick={props.helpClick}>Help/FAQ</Button>
+          </div>
+        </div>
+        <div className="row" align="center">
+          <div className="col">
+            <Button className="settingsButton" onClick={props.contributeClick}>Contribute on Github</Button>
+          </div>
+        </div>
+        </div>
+        <br></br>
+      </div>
+    );
+  }
+  else {
+    return (
+      <div className="row" align="center">
+        <div className="col">
+          <Button variant={(props.displaySettings) ? "primary" : "outline-secondary"} className="settingsButton" onClick={props.settingsClick}>⚙️</Button>
+        </div>
+      </div>
+    );
+  }
 }
 
 //Renders application as a whole

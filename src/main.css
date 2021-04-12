@@ -19,11 +19,16 @@ code {
   padding: 12px;
 }
 
+.auto {
+  display: block;
+  margin:  auto;
+}
+
 .rtl {
   margin-left: auto;
 }
 
-.btnGroupMargin {
+.barBtnMargin {
   margin-left: 10px;
 }
 
@@ -55,11 +60,18 @@ code {
 }
 
 .advButton {
-  margin: 7px;
+  margin: 5px;
 }
 
 .settingsButton {
   margin: 5px;
+}
+
+.settings {
+  background-color: #454545;
+  color: antiquewhite;
+  border-radius: 15px;
+  padding: 20px 0px;
 }
 
 .prompt {
@@ -76,7 +88,7 @@ code {
   color: antiquewhite;
   border-radius: 15px;
   margin: 20px;
-  padding: 30px 30px 20px 30px;
+  padding: 20px;
 }
 
 @keyframes right {
@@ -95,4 +107,3 @@ code {
   0% {background-color: #454545;}
   100% {background-color: yellow;}
 }
-

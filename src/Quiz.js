@@ -5,6 +5,7 @@ import './main.css';
 import {Kanji} from './Kanji.js';
 import {Vocab} from './Vocab.js';
 
+//Retrieves linguistic element prompt itself based upon set selected
 function serveQuizPrompt(set, currentElement) {
   if (set === "Kanji") {
     return currentElement.character;
@@ -96,6 +97,7 @@ function serveQuizAnswers(currentSet, currentElement, poolFloor, poolCeiling) {
   return answers;
 }
 
+//Core Quiz components, renders and runs Quiz mode
 export default class Quiz extends React.Component {
   constructor(props) {
     super(props);
@@ -104,6 +106,7 @@ export default class Quiz extends React.Component {
     };
   }
 
+  //Initializes quiz options upon new prompt
   static getDerivedStateFromProps(nextProps) {
     //this.forceUpdate();
     return {
@@ -112,8 +115,13 @@ export default class Quiz extends React.Component {
     };
   }
 
+  //Prevents inappropriate option re-rendering
   shouldComponentUpdate(nextProps, nextState) {
     if (nextProps.poolCeiling !== this.props.poolCeiling) {
+      return false;
+    }
+
+    if (nextProps.currentElement === this.props.currentElement) {
       return false;
     }
 
@@ -123,16 +131,16 @@ export default class Quiz extends React.Component {
   render() {
     switch (this.props.numAnswers) {
       case 2:
-        //TODO - v2.5
+        //TODO - FUTURE EXPANSION
         break;
       case 3:
-        //TODO - v2.5
+        //TODO - FUTURE EXPANSION
         break;
       case 5:
-        //TODO - v2.5
+        //TODO - FUTURE EXPANSION
         break;
       case 6:
-        //TODO - v2.5
+        //TODO - FUTURE EXPANSION
         break;
       default:
         return (
@@ -163,11 +171,12 @@ export default class Quiz extends React.Component {
               />
             </Row>
           </div>
-        )
+        );
     }
   }
 }
 
+//Renders prompt
 function Prompt(props) {
   return (
     <div className="prompt">
@@ -176,6 +185,7 @@ function Prompt(props) {
   );
 }
 
+//Renders a given answer option
 function Answer(props) {
   return (
     <Col>
