@@ -5,6 +5,7 @@ import './main.css';
 import {Kanji} from './Kanji.js';
 import {Vocab} from './Vocab.js';
 
+//(Req. 3.2.3, 3.2.4)
 //Retrieves linguistic element prompt itself based upon set selected
 function serveQuizPrompt(set, currentElement) {
   if (set === "Kanji") {
@@ -15,6 +16,7 @@ function serveQuizPrompt(set, currentElement) {
   }
 }
 
+//(Req. 3.2.2)
 //Serves extra options for Quiz mode
 function serveQuizAnswers(currentSet, currentElement, poolFloor, poolCeiling) {
   let answers = [], unique = false, extraTerms = 3;
@@ -97,12 +99,12 @@ function serveQuizAnswers(currentSet, currentElement, poolFloor, poolCeiling) {
   return answers;
 }
 
-//Core Quiz components, renders and runs Quiz mode
+//(Req. 3.2)
+//Core Quiz component, renders and runs Quiz mode
 export default class Quiz extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-
     };
   }
 
@@ -176,6 +178,7 @@ export default class Quiz extends React.Component {
   }
 }
 
+//(Req. 3.2.1)
 //Renders prompt
 function Prompt(props) {
   return (
@@ -185,6 +188,7 @@ function Prompt(props) {
   );
 }
 
+//(Req. 3.2.2)
 //Renders a given answer option
 function Answer(props) {
   return (

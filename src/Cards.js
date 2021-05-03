@@ -3,7 +3,7 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import './main.css';
 
-//ALERT: Consider reframing component to be within another content or container-fluid div and include AdvControls to the side of current div
+//(Req. 3.1)
 //Stateful component handling all Card mode logic
 export default class Cards extends React.Component {
   constructor(props) {
@@ -84,7 +84,8 @@ export default class Cards extends React.Component {
     }
   }
 }
-  
+
+//(Req. 3.1.1, 3.1.4)
 //Displays front of cards generated from the Kanji set
 function KanjiFront(props) {
   return (
@@ -94,6 +95,7 @@ function KanjiFront(props) {
   );
 }
 
+//(Req. 3.1.2, 3.1.4)
 //Displays back of cards generated from the Kanji set
 function KanjiBack(props) {
   return (
@@ -108,6 +110,7 @@ function KanjiBack(props) {
   );
 }
 
+//(Req. 3.1.1, 3.1.5)
 //Displays front of cards generated from the Vocab set
 function VocabFront(props) {
   return (
@@ -117,8 +120,7 @@ function VocabFront(props) {
   );
 }
 
-//TODO
-//Use <p> or h5 for sentences? Center?
+//(Req. 3.1.2, 3.1.5)
 //Displays back of cards generated from the Vocab set
 //Also uses logic for preventing readings fields identical to the full element fields from being displayed
 function VocabBack(props) {
@@ -137,6 +139,7 @@ function VocabBack(props) {
   );
 }
 
+//(Req. 3.1.6)
 //Provides "Easy" and "Hard" buttons for users to click in Cards mode and establishes their event triggers
 function AdvancementControls(props) {
   return (
@@ -148,5 +151,3 @@ function AdvancementControls(props) {
     </div>
   );
 }
-
-//export {Cards};

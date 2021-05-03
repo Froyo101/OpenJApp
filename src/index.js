@@ -7,11 +7,11 @@ import './main.css';
 import Cards from './Cards.js';
 import Quiz from './Quiz.js';
 //import Settings/Preferences from './Settings/Preferences.js'
-import {Kanji} from './Kanji.js';
-import {Vocab} from './Vocab.js';
+import {Kanji} from './Kanji.js'; //(Req. 3.3.1)
+import {Vocab} from './Vocab.js'; //(Req. 3.3.2)
 //import reportWebVitals from './reportWebVitals';
 
-//GENERAL PRINCIPLE TO REMEMBER: Most controlling logic should be raised to the highest level possible to ensure easy implementation of future app controls
+//GENERAL REACT PRINCIPLE TO REMEMBER: Most controlling logic should be raised to the highest level possible to ensure easy implementation of future app controls
 
 //Primary Goals (Rough Roadmap):
 //1.0:
@@ -23,7 +23,7 @@ import {Vocab} from './Vocab.js';
   //Add a multiple choice quiz mode - DONE!
   //Change HTML page name! - DONE!
 //2.x (WE ARE HERE):
-  //Pop up settings menu that allows user to personalize experience - DONE!
+  //Pop up settings menu - DONE!
 
 //Misc/Possible Future Features (all x.x unless roadmap revised to include):
   //Add a starring/bookmarking feature and viewing list
@@ -33,10 +33,11 @@ import {Vocab} from './Vocab.js';
   //Add time travel? (store ~10 last cards and allow cycling through them at user's convenience, but with flag that prevents extra time from
     //being added)
 
+//(Req. 3.3.3)
 //Loads or establishes and initializes array of user stats for Kanji objects
 var successfulKanjiLoad = false;
 
-//Kanji set loading and parsing logic
+//Kanji set stats loading and parsing logic
 if (localStorage.getItem("KanjiStats")) {
   try {
     var KanjiStats = JSON.parse(localStorage.getItem("KanjiStats"));
@@ -62,10 +63,11 @@ if (!successfulKanjiLoad) {
   console.log("New KanjiStats generated.");
 }
 
+//(Req. 3.3.4)
 //Loads or establishes and initializes array of user stats for Vocab objects
 var successfulVocabLoad = false;
 
-//Kanji set loading and parsing logic
+//Vocab set stats loading and parsing logic
 if (localStorage.getItem("VocabStats")) {
   try {
     var VocabStats = JSON.parse(localStorage.getItem("VocabStats"));
@@ -101,6 +103,7 @@ const vocabSetLength = Vocab.length;
 //Keeps track of quiz options with altered style
 var quizAlteredOptions = [];
 
+//(Req. 3.3.5)
 //Algorithm that handles weighted/scaling serving of linguistic elements in Cards mode
 function serveContent(set, stats, ogElement, poolFloor, poolCeiling) {
   console.log("Floor and ceiling: " + poolFloor + ' ' + poolCeiling);
@@ -136,7 +139,7 @@ function serveContent(set, stats, ogElement, poolFloor, poolCeiling) {
     let difference = stats[curElement].easy - stats[curElement].hard;
     let selectionBar = 0.5 * Math.pow(1.2, difference);
 
-    //Ensures an elements appearance rate won't become either wholly impossible or a certainty with extreme difference values 
+    //Ensures an element's appearance rate won't become either wholly impossible or a certainty with extreme difference values 
     if (difference > 0 && selectionBar > 0.95) {
       selectionBar = 0.95;
     }
@@ -176,6 +179,7 @@ class App extends React.Component {
     };
   }
 
+  //(Req. 3.4.2)
   //Swaps study set to Kanji
   swapKanjiSet() {
     this.setState({
@@ -189,6 +193,7 @@ class App extends React.Component {
     });
   }
 
+  //(Req. 3.4.2)
   //Swaps study set to Vocab
   swapVocabSet() {
     this.setState({
@@ -202,6 +207,7 @@ class App extends React.Component {
     });
   }
 
+  //(Req. 3.4.1)
   //Swaps study mode to Cards
   swapCardsMode() {
     if (this.state.set === "Kanji") {
@@ -228,6 +234,7 @@ class App extends React.Component {
     }
   }
 
+  //(Req. 3.4.1)
   //Swaps study mode to Quiz
   swapQuizMode() {
     if (this.state.set === "Kanji") {
@@ -254,6 +261,7 @@ class App extends React.Component {
     }
   }
 
+  //(Req. 3.4.3)
   //Adjusts poolCeiling state according to slider value
   handleSliderChange(e) {
     this.setState({
@@ -261,6 +269,7 @@ class App extends React.Component {
     });
   }
 
+  //(Req. 3.1.3)
   //Flips Cards component for user
   handleCardClick() {
     this.setState({
@@ -268,6 +277,7 @@ class App extends React.Component {
     });
   }
 
+  //(Req. 3.1.6)
   //Registers element shown as having been Easy according to user and updates stats accordingly
   handleEasyClick() {
     if (this.state.set === "Kanji") {
@@ -277,7 +287,9 @@ class App extends React.Component {
   
       KanjiStats[curElement].easy++;
       console.log("Easy encounters: " + KanjiStats[curElement].easy);
-  
+      
+      //(Req. 3.1.7)
+      //Advances Kanji set, updates card interaction amount
       this.setState((prevState) => ({
         isFront: true,
         element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling),
@@ -291,7 +303,9 @@ class App extends React.Component {
   
       VocabStats[curElement].easy++;
       console.log("Easy encounters: " + VocabStats[curElement].easy);
-  
+      
+      //(Req. 3.1.7)
+      //Advances Vocab set, updates card interaction amount
       this.setState((prevState) => ({
         isFront: true,
         element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling),
@@ -300,6 +314,7 @@ class App extends React.Component {
     }
   }
 
+  //(Req. 3.1.6)
   //Registers element shown as having been Hard according to user and updates stats accordingly
   handleHardClick() {
     if (this.state.set === "Kanji") {
@@ -309,7 +324,9 @@ class App extends React.Component {
   
       KanjiStats[curElement].hard++;
       console.log("Hard encounters: " + KanjiStats[curElement].hard);
-  
+      
+      //(Req. 3.1.7)
+      //Advances Kanji set, updates card interaction amount
       this.setState((prevState) => ({
         isFront: true,
         element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling),
@@ -323,7 +340,9 @@ class App extends React.Component {
   
       VocabStats[curElement].hard++;
       console.log("Hard encounters: " + VocabStats[curElement].hard);
-  
+      
+      //(Req. 3.1.7)
+      //Advances Vocab set, updates card interaction amount
       this.setState((prevState) => ({
         isFront: true,
         element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling),
@@ -332,6 +351,7 @@ class App extends React.Component {
     }
   }
 
+  //(Req. 3.2.5, 3.2.6)
   //Handles determining whether an answer is right or wrong in Quiz mode and updates app accordingly
   handleAnswerClick(e) {
     console.log("Answer: " + e.target.textContent);
@@ -339,6 +359,7 @@ class App extends React.Component {
     console.log("Current Element: " + this.state.element.character);
     
     if (this.state.set === "Kanji") {
+      //Checks answer in Kanji set context, changes answer option styling to green or red
       if (this.state.element.keyWords === e.target.textContent) {
         this.resetQuizStyle();
 
@@ -383,6 +404,8 @@ class App extends React.Component {
         console.log("Easy encounters: " + KanjiStats[curElement].easy);
       }
 
+      //(Req. 3.2.7)
+      //Advances Kanji set, updates quiz question count
       this.setState((prevState) => ({
         quizWrong: false,
         element: serveContent(Kanji, KanjiStats, curElement, this.state.poolFloor, this.state.poolCeiling),
@@ -390,6 +413,7 @@ class App extends React.Component {
       }));
     }
     else if (this.state.set === "Vocab") {
+      //Checks answer in Vocab set context, changes answer option styling to green or red
       if (this.state.element.termTranslation === e.target.textContent) {
         this.resetQuizStyle();
 
@@ -434,6 +458,8 @@ class App extends React.Component {
         console.log("Easy encounters: " + VocabStats[curElement].easy);
       }
 
+      //(Req. 3.2.7)
+      //Advances Vocab set, updates quiz question count
       this.setState((prevState) => ({
         quizWrong: false,
         element: serveContent(Vocab, VocabStats, curElement, this.state.poolFloor, this.state.poolCeiling),
@@ -453,6 +479,15 @@ class App extends React.Component {
     quizAlteredOptions = [];
   }
 
+  //(Req. 3.4.4)
+  //Displays or hides settings menu at user's request
+  handleSettingsClick() {
+    this.setState((prevState) => ({
+      displaySettings: !prevState.displaySettings
+    }));
+  }
+
+  //(Req. 3.4.5)
   //Saves stats objects using localStorage API
   handleSaveClick() {
     localStorage.setItem("KanjiStats", JSON.stringify(KanjiStats));
@@ -460,6 +495,7 @@ class App extends React.Component {
     alert("Stats saved successfully!");
   }
 
+  //(Req. 3.4.6)
   //Resets stats objects to a clean slate
   handleResetClick() {
     for (var i = 0; i < kanjiSetLength; i++) {
@@ -481,18 +517,13 @@ class App extends React.Component {
     alert("Stats successfully reset.")
   }
 
-  //Displays or hides settings menu at user's request
-  handleSettingsClick() {
-    this.setState((prevState) => ({
-      displaySettings: !prevState.displaySettings
-    }));
-  }
-
+  //(Req 3.4.7)
   //Takes user to Help/FAQ document
   handleHelpClick() {
-    alert("This feature is presently not available.");
+    window.open("https://github.com/Froyo101/OpenJApp/blob/main/UserManual.pdf", "_blank");
   }
 
+  //(Req. 3.4.8)
   //Takes user to Github page
   handleContributeClick() {
     window.open("https://github.com/Froyo101/OpenJApp", "_blank");
@@ -508,6 +539,7 @@ class App extends React.Component {
   }
 
   //The meat and potatoes of the application/UI, this renders the study mode selected as well as all misc. controls and settings
+  //Within the JSX code, the UI aspects of (Req. 3.4.3), (Req. 3.1.7), and (Req. 3.2.7) are implemented 
   render() {
     if (this.state.mode === "Cards") {
       return (
@@ -608,6 +640,7 @@ class App extends React.Component {
   }
 }
 
+//(Req. 3.4.1)
 //Displays title bar for app, including the mode selection button group within
 function TitleBar(props) {
   return (
@@ -621,6 +654,7 @@ function TitleBar(props) {
   );
 }
 
+//(Req. 3.4.2)
 //Displays set selection button group
 function SetControl(props) {
   return (
@@ -631,6 +665,7 @@ function SetControl(props) {
   );
 }
 
+//(Req. 3.4.4, 3.4.5-8)
 //Provides Settings button for users to click and, when pressed, renders the settings menu itself
 function Settings(props) {
   if (props.displaySettings) {
@@ -656,7 +691,7 @@ function Settings(props) {
         </div>
         <div className="row" align="center">
           <div className="col">
-            <Button className="settingsButton" onClick={props.contributeClick}>Contribute on Github</Button>
+            <Button className="settingsButton" onClick={props.contributeClick}>Contribute on GitHub</Button>
           </div>
         </div>
         </div>
